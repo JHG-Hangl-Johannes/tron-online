@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Tron (Vite)
 
 Simple browser implementation of the classic Tron lightcycle game using Vite.
@@ -17,3 +18,7 @@ Modes
 
 - 1 Player vs simple AI
 - 2 Player local
+=======
+# tron-vite
+the classic arcade game "tron" using the building tool vite
+>>>>>>> 808a8289c73b5962db1d701cc442cf30e4ca8d5f
