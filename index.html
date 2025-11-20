@@ -15,5 +15,30 @@
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
+    <script>
+      (function(){
+        function showMsg(text){
+          const m = document.createElement('div');
+          m.textContent = text;
+          Object.assign(m.style, {
+            position: 'fixed',
+            left: '50%',
+            top: '10%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(0,0,0,0.8)',
+            color: '#fff',
+            padding: '8px 12px',
+            borderRadius: '4px',
+            zIndex: 9999,
+            fontFamily: 'sans-serif'
+          });
+          document.body.appendChild(m);
+          setTimeout(() => m.remove(), 1500);
+        }
+        document.addEventListener('keydown', function(e){
+          if (e.key === '6') showMsg('67');
+        });
+      })();
+    </script>
   </body>
 </html>

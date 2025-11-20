@@ -1,4 +1,24 @@
 type Dir = 'up' | 'down' | 'left' | 'right';
+function getRandomNeonColorsForPlayers(): [string, string] {
+  const neonColors: string[] = [
+    "#ff009dff", // neon pink
+    "#26ff00ff", // neon green
+    "#FF3131", // neon red
+    "#ffff00ff", // neon yellow
+    "#a200ffff", // neon purple
+    "#00BFFF", // Tron electric blue
+    "#FF8C00", // Tron vivid orange
+  ];
+
+  // Shuffle the array (Fisher-Yates)
+  for (let i = neonColors.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [neonColors[i], neonColors[j]] = [neonColors[j], neonColors[i]];
+  }
+
+  // Take the first two colors
+  return [neonColors[0], neonColors[1]];
+}
 
 const KEY = {
   UP: 'ArrowUp',
@@ -79,18 +99,19 @@ export default class Game {
   }
 
   start(mode: '1p'|'2p' = '1p') {
+    const [player1Color, player2Color] = getRandomNeonColorsForPlayers();
     this.mode = mode;
     this.grid = new Map();
     this.players = [];
 
-    const p1 = new Player(10, Math.floor(this.rows/2), 'right', '#00f');
+    const p1 = new Player(this.cols - 10, Math.floor(this.rows/2), 'left', player1Color);
     this.players.push(p1);
 
     if (mode === '2p') {
-      const p2 = new Player(this.cols - 10, Math.floor(this.rows/2), 'left', '#f00');
+      const p2 = new Player(10, Math.floor(this.rows/2), 'right', player2Color);
       this.players.push(p2);
     } else {
-      const ai = new Player(this.cols - 10, Math.floor(this.rows/2)+2, 'left', '#f00');
+      const ai = new Player(10, Math.floor(this.rows/2)+2, 'right', player2Color);
       this.players.push(ai);
     }
 
