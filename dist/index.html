@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tron - Vite</title>
+    <script type="module" crossorigin src="/assets/index-BRNc0PEr.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CoyhRrpV.css">
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game"></canvas>
+      <div id="ui">
+        <button id="startBtn">Start</button>
+        <label>Mode: <select id="modeSelect"><option value="1p">1 Player vs AI</option><option value="2p">Local 2 Player</option></select></label>
+      </div>
+    </div>
+    <script>
+      (function(){
+        function showMsg(text){
+          const m = document.createElement('div');
+          m.textContent = text;
+          Object.assign(m.style, {
+            position: 'fixed',
+            left: '50%',
+            top: '10%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(0,0,0,0.8)',
+            color: '#fff',
+            padding: '8px 12px',
+            borderRadius: '4px',
+            zIndex: 9999,
+            fontFamily: 'sans-serif'
+          });
+          document.body.appendChild(m);
+          setTimeout(() => m.remove(), 1500);
+        }
+        document.addEventListener('keydown', function(e){
+          if (e.key === '6') showMsg('67');
+        });
+      })();
+    </script>
+  </body>
+</html>
