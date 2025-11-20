@@ -1,4 +1,4 @@
-<!doctype html>
+<!-- <!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -43,4 +43,102 @@
       })();
     </script>
   </body>
-</html>
+</html> -->
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tron - Vite</title>
+
+    <script type="module" crossorigin src="/assets/index-BRNc0PEr.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CoyhRrpV.css">
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game"></canvas>
+      <div id="ui">
+        <button id="startBtn">Start</button>
+        <label>Mode: <select id="modeSelect"><option value="1p">1 Player vs AI</option><option value="2p">Local 2 Player</option></select></label>
+      </div>
+    </div>
+
+    <script>
+      (function(){
+        // improved single reusable message overlay
+        function showMsg(text, duration = 1500) {
+          let m = document.getElementById('__msg_overlay');
+          if (!m) {
+            m = document.createElement('div');
+            m.id = '__msg_overlay';
+            Object.assign(m.style, {
+              position: 'fixed',
+              left: '50%',
+              top: '10%',
+              transform: 'translateX(-50%)',
+              background: 'rgba(0,0,0,0.8)',
+              color: '#fff',
+              padding: '8px 12px',
+              borderRadius: '4px',
+              zIndex: 9999,
+              fontFamily: 'sans-serif',
+              transition: 'opacity 0.25s',
+              opacity: '0'
+            });
+            document.body.appendChild(m);
+          }
+          m.textContent = text;
+          m.style.opacity = '1';
+          clearTimeout(m._t);
+          m._t = setTimeout(() => {
+            m.style.opacity = '0';
+            setTimeout(() => { if (m && m.parentNode) m.remove(); }, 300);
+          }, duration);
+        }
+
+        // canvas sizing for crisp rendering on high-DPI displays
+        const canvas = document.getElementById('game');
+        function resizeCanvas() {
+          if (!canvas) return;
+          const dpr = Math.max(1, window.devicePixelRatio || 1);
+          const rect = canvas.getBoundingClientRect();
+          // ensure a sensible default layout size if zero
+          const layoutW = rect.width || 800;
+          const layoutH = rect.height || 600;
+          canvas.width = Math.max(1, Math.floor(layoutW * dpr));
+          canvas.height = Math.max(1, Math.floor(layoutH * dpr));
+          canvas.style.width = layoutW + 'px';
+          canvas.style.height = layoutH + 'px';
+          canvas.dispatchEvent(new CustomEvent('resized', { detail: { width: canvas.width, height: canvas.height, dpr } }));
+        }
+        window.addEventListener('resize', resizeCanvas);
+        // initial sizing (run after layout)
+        requestAnimationFrame(resizeCanvas);
+
+        // wire UI controls to emit events and show brief feedback
+        const startBtn = document.getElementById('startBtn');
+        const modeSelect = document.getElementById('modeSelect');
+        if (startBtn) {
+          startBtn.addEventListener('click', () => {
+            const mode = modeSelect ? modeSelect.value : '1p';
+            window.dispatchEvent(new CustomEvent('gameStart', { detail: { mode } }));
+            showMsg('Starting: ' + mode);
+          });
+        }
+        if (modeSelect) {
+          modeSelect.addEventListener('change', () => {
+            window.dispatchEvent(new CustomEvent('modeChange', { detail: { mode: modeSelect.value } }));
+            showMsg('Mode: ' + modeSelect.value);
+          });
+        }
+
+        // clearer key feedback for '6'
+        document.addEventListener('keydown', function(e){
+          if (e.key === '6') {
+            showMsg('Key pressed: 6 (code: ' + e.code + ')');
+          }
+        });
+      })();
+     </script>
+   </body>
+ </html>
