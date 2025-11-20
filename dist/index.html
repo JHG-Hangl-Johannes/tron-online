@@ -51,7 +51,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tron - Vite</title>
 
-    <script type="module" crossorigin src="/assets/index-BRNc0PEr.js"></script>
+    <script type="module">
+      (function(){
+        // If this HTML already contains the bundled module, paste it into the #index-bundle element.
+        // Otherwise fallback to the external asset path.
+        const inline = document.getElementById('index-bundle');
+        if (inline && inline.textContent.trim()) {
+          const blob = new Blob([inline.textContent], { type: 'text/javascript' });
+          const url = URL.createObjectURL(blob);
+          import(url).finally(() => URL.revokeObjectURL(url));
+        } else {
+          import('/assets/index-BRNc0PEr.js');
+        }
+      })();
+    </script>
+
+    <!-- If your bundle is already embedded in this HTML, paste it here (type text/plain to avoid executing twice) -->
+    <script id="index-bundle" type="text/plain" crossorigin>
+    /* Paste contents of /assets/index-BRNc0PEr.js here to avoid external network requests */
+    </script>
     <link rel="stylesheet" crossorigin href="/assets/index-CoyhRrpV.css">
   </head>
   <body>
