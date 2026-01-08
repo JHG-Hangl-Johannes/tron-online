@@ -1,2 +1,2 @@
 # tron-online
-Das Tron-vite, aber online!
+Das Tron-vite Projekt, aber online!
