@@ -1,0 +1,308 @@
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+
+const app = express();
+const port = 3000;
+const HOST = "0.0.0.0";
+
+// Create HTTP server
+const server = http.createServer(app);
+
+// Attach Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  }
+});
+
+// Example API route
+app.get("/api/hello", (req, res) => {
+  res.json({ message: "Hello from backend!" });
+});
+
+// WebSocket events
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("A user disconnected:", socket.id);
+  });
+});
+
+// Start server
+server.listen(port, HOST, () => {
+  console.log(`Backend running at http://${HOST}:${port}`);
+});
+// const io = new Server(server, {
+//   cors: {
+//     origin: "*",
+//   },
+// });
+// ---------- GAME CONSTANTS ----------
+const COLS = 60;
+const ROWS = 40;
+const TICK_MS = 80;
+
+// ---------- GAME STATE ----------
+const games = {};
+let waitingSocket = null;
+
+// ---------- SOCKET HANDLERS ----------
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+
+  socket.on("ready", () => {
+  // If this player is already waiting, ignore
+   if (waitingSocket && waitingSocket.id === socket.id) {
+      return;
+   }
+
+   if (!waitingSocket) {
+     waitingSocket = socket;
+      socket.emit("waiting");
+   } else {
+      const socketA = waitingSocket;
+     const socketB = socket;
+
+     // Prevent matching the same socket
+      if (socketA.id === socketB.id) return;
+
+     const roomId = socketA.id + "#" + socketB.id;
+
+      socketA.join(roomId);
+     socketB.join(roomId);
+
+      waitingSocket = null;
+
+      startCountdown(roomId, socketA, socketB);
+    }
+  });
+
+
+  // Input from clients
+  socket.on("input", (key) => {
+    const { game, playerIndex } = findGameBySocket(socket.id);
+    if (!game) return;
+
+    const player = game.players[playerIndex];
+    if (!player || !player.alive) return;
+
+    if (key === "ArrowUp" || key === "w") player.pendingDir = "up";
+    if (key === "ArrowDown" || key === "s") player.pendingDir = "down";
+    if (key === "ArrowLeft" || key === "a") player.pendingDir = "left";
+    if (key === "ArrowRight" || key === "d") player.pendingDir = "right";
+  });
+
+  // Rematch request
+  socket.on("rematchRequest", () => {
+    const { roomId, game } = findGameBySocket(socket.id);
+    if (!game) return;
+
+    game.rematchVotes++;
+
+    if (game.rematchVotes === 2) {
+      io.to(roomId).emit("rematchStart");
+      game.rematchVotes = 0;
+
+      const sockets = Object.keys(game.playerBySocket);
+      const socketA = io.sockets.sockets.get(sockets[0]);
+      const socketB = io.sockets.sockets.get(sockets[1]);
+
+      startCountdown(roomId, socketA, socketB);
+    }
+  });
+
+  // Disconnect
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+
+    if (waitingSocket && waitingSocket.id === socket.id) {
+      waitingSocket = null;
+      return;
+    }
+
+    const { roomId, game } = findGameBySocket(socket.id);
+    if (game && roomId) {
+      endGame(roomId, "opponent disconnected");
+    }
+  });
+  socket.on("playAgain", () => {
+  const { roomId, game } = findGameBySocket(socket.id);
+
+  // If player was in a game, stop it
+  if (game && roomId) {
+    clearInterval(game.interval);
+    delete games[roomId];
+  }
+
+  // Remove from old room
+  for (const room of socket.rooms) {
+    if (room !== socket.id) socket.leave(room);
+  }
+
+  // Put player back into matchmaking
+  if (!waitingSocket) {
+    waitingSocket = socket;
+    socket.emit("waiting");
+  } else {
+    const socketA = waitingSocket;
+    const socketB = socket;
+    const newRoomId = socketA.id + "#" + socketB.id;
+
+    socketA.join(newRoomId);
+    socketB.join(newRoomId);
+
+    waitingSocket = null;
+
+    startCountdown(newRoomId, socketA, socketB);
+    }
+  });
+});
+
+// ---------- COUNTDOWN ----------
+function startCountdown(roomId, socketA, socketB) {
+  io.to(roomId).emit("matchFound");
+
+  let count = 3;
+
+  const countdownInterval = setInterval(() => {
+    io.to(roomId).emit("countdown", count);
+
+    if (count === 0) {
+      clearInterval(countdownInterval);
+
+      io.to(roomId).emit("startGame");
+
+      createGame(roomId, socketA, socketB);
+    }
+
+    count--;
+  }, 1000);
+}
+
+// ---------- GAME CREATION ----------
+function createGame(roomId, socketA, socketB) {
+  const players = [
+    {
+      x: COLS - 10,
+      y: Math.floor(ROWS / 2),
+      dir: "left",
+      color: "#00BFFF",
+      alive: true,
+      trail: [],
+      pendingDir: null,
+    },
+    {
+      x: 10,
+      y: Math.floor(ROWS / 2),
+      dir: "right",
+      color: "#DF740C",
+      alive: true,
+      trail: [],
+      pendingDir: null,
+    },
+  ];
+
+  const grid = new Set();
+  for (const p of players) {
+    p.trail.push([p.x, p.y]);
+    grid.add(`${p.x},${p.y}`);
+  }
+
+  games[roomId] = {
+    players,
+    grid,
+    playerBySocket: {
+      [socketA.id]: 0,
+      [socketB.id]: 1,
+    },
+    interval: setInterval(() => updateGame(roomId), TICK_MS),
+    rematchVotes: 0,
+  };
+}
+
+// ---------- GAME HELPERS ----------
+function findGameBySocket(socketId) {
+  for (const roomId of Object.keys(games)) {
+    const game = games[roomId];
+    if (socketId in game.playerBySocket) {
+      return {
+        roomId,
+        game,
+        playerIndex: game.playerBySocket[socketId],
+      };
+    }
+  }
+  return { roomId: null, game: null, playerIndex: -1 };
+}
+
+function endGame(roomId, reason = "gameOver") {
+  const game = games[roomId];
+  if (!game) return;
+
+  clearInterval(game.interval);
+  game.interval = null;
+
+  io.to(roomId).emit("gameOver", { reason });
+
+  console.log("Game ended in room:", roomId, "reason:", reason);
+}
+
+// ---------- GAME LOOP ----------
+function updateGame(roomId) {
+  const game = games[roomId];
+  if (!game) return;
+
+  const players = game.players;
+  const grid = game.grid;
+
+  const opposite = { up: "down", down: "up", left: "right", right: "left" };
+
+  for (const p of players) {
+    if (!p.alive) continue;
+
+    if (p.pendingDir && p.pendingDir !== opposite[p.dir]) {
+      p.dir = p.pendingDir;
+    }
+    p.pendingDir = null;
+
+    if (p.dir === "up") p.y--;
+    if (p.dir === "down") p.y++;
+    if (p.dir === "left") p.x--;
+    if (p.dir === "right") p.x++;
+
+    const key = `${p.x},${p.y}`;
+
+    if (
+      p.x < 0 ||
+      p.x >= COLS ||
+      p.y < 0 ||
+      p.y >= ROWS ||
+      grid.has(key)
+    ) {
+      p.alive = false;
+    } else {
+      grid.add(key);
+      p.trail.push([p.x, p.y]);
+    }
+  }
+
+  io.to(roomId).emit("state", {
+    players: players.map((p) => ({
+      x: p.x,
+      y: p.y,
+      dir: p.dir,
+      color: p.color,
+      alive: p.alive,
+      trail: p.trail,
+    })),
+    grid: Array.from(grid),
+  });
+
+  const alive = players.filter((p) => p.alive);
+  if (alive.length <= 1) {
+    endGame(roomId, "round finished");
+  }
+}
+

@@ -5,16 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tron - Vite</title>
     <link rel="stylesheet" href="/src/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <script type="module" src="/src/main.ts"></script>
   </head>
   <body>
-    <div id="app">
-      <canvas id="game"></canvas>
-      <div id="ui">
-        <button id="startBtn">Start</button>
-        <label>Mode: <select id="modeSelect"><option value="1p">1 Player vs AI</option><option value="2p">Local 2 Player</option></select></label>
-      </div>
-    </div>
-    <script type="module" src="/src/main.ts"></script>
+  <div id="mainMenu">
+    <h1 class="title">TRON</h1>
+    <button id="startBtn">Spiel starten</button>
+  </div>
+
+<div id="gameUI" style="display:none;">
+    <canvas id="game"></canvas>
+
+    <button id="rematchBtn" class="glow-btn" style="display:none;">Rematch</button>
+    <button id="playAgainBtn" class="glow-btn" style="display:none;">Nochmal spielen</button>
+    <button id="quitBtn" class="glow-btn" style="display:none;">Zurück zum Menü</button>
+</div>
+    <div id="status" class="status"></div>
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
     <script>
       (function(){
         function showMsg(text){
