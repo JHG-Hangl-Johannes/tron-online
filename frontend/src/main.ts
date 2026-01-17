@@ -48,7 +48,7 @@ function stopSearchingAnimation() {
 }
 
 // ---------- SOCKET ----------
-const socket = io("http://192.168.173.64:3000");
+const socket = io("http://192.168.173.122:3000");
 const renderer = new GameRenderer(canvas);
 
 // ---------- MATCHMAKING ----------
