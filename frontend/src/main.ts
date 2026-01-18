@@ -9,7 +9,6 @@ const gameUI = document.getElementById("gameUI") as HTMLDivElement;
 
 const startBtn = document.getElementById("startBtn") as HTMLButtonElement;
 const rematchBtn = document.getElementById("rematchBtn") as HTMLButtonElement;
-const cancelRematchBtn = document.getElementById("cancelRematchBtn") as HTMLButtonElement;
 const playAgainBtn = document.getElementById("playAgainBtn") as HTMLButtonElement;
 const quitBtn = document.getElementById("quitBtn") as HTMLButtonElement;
 
@@ -40,19 +39,6 @@ function startSearchingAnimation() {
   }, 500);
 }
 
-function startWaitingAnimation() {
-  let dots = 0;
-
-  if (searchingInterval !== null) {
-    clearInterval(searchingInterval);
-  }
-
-  searchingInterval = window.setInterval(() => {
-    dots = (dots + 1) % 4;
-    statusText.innerText = "Warte auf Gegner" + ".".repeat(dots);
-  }, 500);
-}
-
 function stopSearchingAnimation() {
   if (searchingInterval !== null) {
     clearInterval(searchingInterval);
@@ -62,7 +48,7 @@ function stopSearchingAnimation() {
 }
 
 // ---------- SOCKET ----------
-const socket = io("http://192.168.173.112:3000");
+const socket = io("http://192.168.173.122:3000");
 const renderer = new GameRenderer(canvas);
 
 // ---------- MATCHMAKING ----------
@@ -115,7 +101,6 @@ socket.on("gameOver", () => {
   showStatus("Spiel vorbei!");
 
   rematchBtn.style.display = "block";
-  cancelRematchBtn.style.display = "none";
   playAgainBtn.style.display = "block";
   quitBtn.style.display = "block";
 });
@@ -123,29 +108,11 @@ socket.on("gameOver", () => {
 // ---------- REMATCH ----------
 rematchBtn.addEventListener("click", () => {
   rematchBtn.style.display = "none";
-  cancelRematchBtn.style.display = "block";
   playAgainBtn.style.display = "none";
   quitBtn.style.display = "none";
 
   showStatus("Warte auf Gegner…");
-  startWaitingAnimation();
   socket.emit("rematchRequest");
-});
-
-// Cancel rematch request
-cancelRematchBtn.addEventListener("click", () => {
-  cancelRematchBtn.style.display = "none";
-  rematchBtn.style.display = "block";
-  playAgainBtn.style.display = "block";
-  quitBtn.style.display = "block";
-
-  stopSearchingAnimation();
-  showStatus("Rematch abgebrochen!");
-  socket.emit("cancelRematch");
-});
-
-socket.on("rematchRequest", () => {
-  showStatus("Gegner möchte ein Rematch!");
 });
 
 socket.on("rematchStart", () => {
@@ -156,7 +123,6 @@ socket.on("rematchStart", () => {
 // ---------- PLAY AGAIN (NEW OPPONENT) ----------
 playAgainBtn.addEventListener("click", () => {
   rematchBtn.style.display = "none";
-  cancelRematchBtn.style.display = "none";
   playAgainBtn.style.display = "none";
   quitBtn.style.display = "none";
 
@@ -170,7 +136,6 @@ quitBtn.addEventListener("click", () => {
   mainMenu.style.display = "flex";
 
   rematchBtn.style.display = "none";
-  cancelRematchBtn.style.display = "none";
   playAgainBtn.style.display = "none";
   quitBtn.style.display = "none";
 
