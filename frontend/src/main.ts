@@ -17,6 +17,7 @@ const statusText = document.getElementById("status") as HTMLDivElement;
 // ---------- STATE ----------
 let gameActive = false;
 let searchingInterval: number | null = null;
+let rematchVotes = 0;
 
 // ---------- HELPERS ----------
 function showStatus(msg: string) {
@@ -108,6 +109,8 @@ socket.on("gameOver", () => {
   gameActive = false;
   showStatus("Spiel vorbei!");
 
+  rematchVotes = 0;
+  rematchBtn.innerText = "Rematch 0/2";
   rematchBtn.style.display = "block";
   playAgainBtn.style.display = "block";
   quitBtn.style.display = "block";
@@ -115,9 +118,9 @@ socket.on("gameOver", () => {
 
 // ---------- REMATCH ----------
 rematchBtn.addEventListener("click", () => {
-  rematchBtn.style.display = "none";
-  playAgainBtn.style.display = "none";
-  quitBtn.style.display = "none";
+  rematchVotes++;
+  rematchBtn.innerText = `Rematch ${rematchVotes}/2`;
+  rematchBtn.disabled = true;
 
   startRematchAnimation();
   socket.emit("rematchRequest");
@@ -127,6 +130,11 @@ socket.on("rematchStart", () => {
   stopSearchingAnimation();
   showStatus("Rematch startet!");
   gameActive = false;
+});
+
+socket.on("opponentRematchRequest", () => {
+  rematchVotes++;
+  rematchBtn.innerText = `Rematch ${rematchVotes}/2`;
 });
 
 // ---------- PLAY AGAIN (NEW OPPONENT) ----------
