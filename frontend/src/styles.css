@@ -48,9 +48,9 @@ body, button, .status {
   50% { box-shadow: 0 0 30px rgba(0, 234, 255, 1); }
 }
 
-@keyframes glowPulseOrange {
-  0%, 100% { box-shadow: 0 0 12px rgba(255, 123, 0, 0.4); }
-  50% { box-shadow: 0 0 25px rgba(255, 123, 0, 1); }
+@keyframes glowPulseBlue {
+  0%, 100% { box-shadow: 0 0 12px rgba(0, 234, 255, 0.4); }
+  50% { box-shadow: 0 0 25px rgba(0, 234, 255, 1); }
 }
 
 .status.searching {
@@ -117,7 +117,7 @@ button.disabled {
 
 
 .glow-btn:hover {
-  background: rgba(255, 123, 0, 0.15);
-  animation: glowPulseOrange 1.5s infinite;
+  background: rgba(0, 234, 255, 0.15);
+  animation: glowPulseBlue 1.5s infinite;
   transform: scale(1.05);
 }
