@@ -2,6 +2,7 @@ export default class GameRenderer {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   cellSize = 12;
+  sprites: { [key: string]: HTMLImageElement } = {};
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -11,6 +12,16 @@ export default class GameRenderer {
 
     this.canvas.width = 60 * this.cellSize;
     this.canvas.height = 40 * this.cellSize;
+
+    // Load sprites
+    this.loadSprite("player1", "/src/assets/player1.png");
+    this.loadSprite("player2", "/src/assets/player2.png");
+  }
+
+  loadSprite(key: string, src: string) {
+    const img = new Image();
+    img.src = src;
+    this.sprites[key] = img;
   }
 
   render(state: any) {
@@ -32,7 +43,8 @@ export default class GameRenderer {
     }
 
     // Draw players
-    for (const p of state.players) {
+    for (let i = 0; i < state.players.length; i++) {
+      const p = state.players[i];
       ctx.fillStyle = p.color || "#fff";
 
       // Draw trail
@@ -45,15 +57,29 @@ export default class GameRenderer {
         );
       }
 
-      // Draw head
+      // Draw head with sprite
       if (p.alive) {
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(
-          p.x * this.cellSize,
-          p.y * this.cellSize,
-          this.cellSize,
-          this.cellSize
-        );
+        const spriteKey = `player${i + 1}`;
+        const sprite = this.sprites[spriteKey];
+        
+        if (sprite && sprite.complete) {
+          ctx.drawImage(
+            sprite,
+            p.x * this.cellSize,
+            p.y * this.cellSize,
+            this.cellSize,
+            this.cellSize
+          );
+        } else {
+          // Fallback to white square if sprite not loaded
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(
+            p.x * this.cellSize,
+            p.y * this.cellSize,
+            this.cellSize,
+            this.cellSize
+          );
+        }
       }
     }
   }
