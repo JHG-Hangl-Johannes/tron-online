@@ -25,7 +25,7 @@ function showStatus(msg: string) {
   setTimeout(() => statusText.classList.remove("show"), 1500);
 }
 
-function startSearchingAnimation() {
+function startDotAnimation(message: string) {
   let dots = 0;
 
   if (searchingInterval !== null) {
@@ -34,9 +34,17 @@ function startSearchingAnimation() {
 
   searchingInterval = window.setInterval(() => {
     dots = (dots + 1) % 4;
-    statusText.innerText = "Suche Gegner" + ".".repeat(dots);
+    statusText.innerText = message + ".".repeat(dots);
     statusText.classList.add("searching");
   }, 500);
+}
+
+function startSearchingAnimation() {
+  startDotAnimation("Suche Gegner");
+}
+
+function startRematchAnimation() {
+  startDotAnimation("Warte auf Gegner");
 }
 
 function stopSearchingAnimation() {
@@ -111,11 +119,12 @@ rematchBtn.addEventListener("click", () => {
   playAgainBtn.style.display = "none";
   quitBtn.style.display = "none";
 
-  showStatus("Warte auf Gegner…");
+  startRematchAnimation();
   socket.emit("rematchRequest");
 });
 
 socket.on("rematchStart", () => {
+  stopSearchingAnimation();
   showStatus("Rematch startet!");
   gameActive = false;
 });
