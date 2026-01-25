@@ -43,6 +43,16 @@ body, button, .status {
   100% { opacity: 0.3; }
 }
 
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 18px rgba(0, 234, 255, 0.8); }
+  50% { box-shadow: 0 0 30px rgba(0, 234, 255, 1); }
+}
+
+@keyframes glowPulseOrange {
+  0%, 100% { box-shadow: 0 0 12px rgba(255, 123, 0, 0.4); }
+  50% { box-shadow: 0 0 25px rgba(255, 123, 0, 1); }
+}
+
 .status.searching {
   animation: pulse 1.2s infinite;
 }
@@ -92,11 +102,10 @@ button.disabled {
 #mainMenu button:hover,
 #gameUI button:hover {
   background: rgba(0, 234, 255, 0.15);
-  box-shadow: 0 0 18px rgba(0, 234, 255, 0.8);
-  width: 280px; /* or any size you like */
+  animation: glowPulse 1.5s infinite;
+  width: 280px;
   text-align: center;
   transform: scale(1.05);
-
 }}
 
 .glow-btn {
@@ -109,6 +118,6 @@ button.disabled {
 
 .glow-btn:hover {
   background: rgba(255, 123, 0, 0.15);
-  box-shadow: 0 0 18px rgba(255, 123, 0, 0.8);
+  animation: glowPulseOrange 1.5s infinite;
   transform: scale(1.05);
 }
