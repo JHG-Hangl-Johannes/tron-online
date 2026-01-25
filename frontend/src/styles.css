@@ -11,7 +11,10 @@ canvas#game{background:#000;border:2px solid #222;display:block}
 
 /* ---------- STATUS TEXT ---------- */
 .status {
-  margin-top: 20px;
+  position: fixed;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
   text-align: center;
   font-size: 26px;
   font-family: 'Orbitron', sans-serif;
@@ -25,6 +28,7 @@ canvas#game{background:#000;border:2px solid #222;display:block}
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1000;
 }
 .status.show {
   opacity: 1;
