@@ -40,8 +40,8 @@ server.listen(port, HOST, () => {
 //   },
 // });
 // ---------- GAME CONSTANTS ----------
-const COLS = 60;
-const ROWS = 40;
+const COLS = 80;
+const ROWS = 60;
 const TICK_MS = 80;
 
 // ---------- GAME STATE ----------

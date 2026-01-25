@@ -1,8 +1,7 @@
 export default class GameRenderer {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  cellSize = 24;
-  sprites: { [key: string]: HTMLImageElement } = {};
+  cellSize = 12;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -10,18 +9,8 @@ export default class GameRenderer {
     if (!ctx) throw new Error("Canvas not supported");
     this.ctx = ctx;
 
-    this.canvas.width = 60 * this.cellSize;
-    this.canvas.height = 40 * this.cellSize;
-
-    // Load sprites
-    this.loadSprite("player1", "/src/assets/player1.png");
-    this.loadSprite("player2", "/src/assets/player2.png");
-  }
-
-  loadSprite(key: string, src: string) {
-    const img = new Image();
-    img.src = src;
-    this.sprites[key] = img;
+    this.canvas.width = 80 * this.cellSize;
+    this.canvas.height = 60 * this.cellSize;
   }
 
   render(state: any) {
@@ -43,8 +32,7 @@ export default class GameRenderer {
     }
 
     // Draw players
-    for (let i = 0; i < state.players.length; i++) {
-      const p = state.players[i];
+    for (const p of state.players) {
       ctx.fillStyle = p.color || "#fff";
 
       // Draw trail
@@ -57,29 +45,15 @@ export default class GameRenderer {
         );
       }
 
-      // Draw head with sprite
+      // Draw head
       if (p.alive) {
-        const spriteKey = `player${i + 1}`;
-        const sprite = this.sprites[spriteKey];
-        
-        if (sprite && sprite.complete) {
-          ctx.drawImage(
-            sprite,
-            p.x * this.cellSize,
-            p.y * this.cellSize,
-            this.cellSize,
-            this.cellSize
-          );
-        } else {
-          // Fallback to white square if sprite not loaded
-          ctx.fillStyle = "#fff";
-          ctx.fillRect(
-            p.x * this.cellSize,
-            p.y * this.cellSize,
-            this.cellSize,
-            this.cellSize
-          );
-        }
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(
+          p.x * this.cellSize,
+          p.y * this.cellSize,
+          this.cellSize,
+          this.cellSize
+        );
       }
     }
   }
