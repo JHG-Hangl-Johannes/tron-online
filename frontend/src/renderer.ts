@@ -1,7 +1,7 @@
 export default class GameRenderer {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  cellSize = 12;
+  cellSize = 24;
   sprites: { [key: string]: HTMLImageElement } = {};
 
   constructor(canvas: HTMLCanvasElement) {

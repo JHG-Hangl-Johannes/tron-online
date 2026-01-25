@@ -111,6 +111,7 @@ socket.on("gameOver", () => {
 
   rematchVotes = 0;
   rematchBtn.innerText = "Rematch 0/2";
+  rematchBtn.disabled = false;
   rematchBtn.style.display = "block";
   playAgainBtn.style.display = "block";
   quitBtn.style.display = "block";
