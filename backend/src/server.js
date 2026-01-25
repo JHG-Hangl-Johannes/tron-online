@@ -101,6 +101,9 @@ io.on("connection", (socket) => {
 
     game.rematchVotes++;
 
+    // Notify the opponent that this player wants to rematch
+    socket.to(roomId).emit("opponentRematchRequest");
+
     if (game.rematchVotes === 2) {
       io.to(roomId).emit("rematchStart");
       game.rematchVotes = 0;
