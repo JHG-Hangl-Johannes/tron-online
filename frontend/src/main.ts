@@ -107,7 +107,7 @@ socket.on("state", (state) => {
 // ---------- GAME OVER ----------
 socket.on("gameOver", () => {
   gameActive = false;
-  showStatus("Spiel vorbei!");
+  showStatus("      Spiel vorbei!     ");
 
   rematchVotes = 0;
   rematchBtn.innerText = "Rematch 0/2";
