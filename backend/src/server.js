@@ -113,7 +113,7 @@ io.on("connection", (socket) => {
     if (!game || !roomId) return;
 
     // End game and notify opponent
-    endGame(roomId, "opponent disconnected");
+    endGame(roomId, "opponentleft");
   });
 
   // ---- PLAY AGAIN (BACK TO MATCHMAKING) ----
@@ -162,7 +162,7 @@ io.on("connection", (socket) => {
     // If this player was in a game, end it and notify opponent
     const { roomId, game } = findGameBySocket(socket.id);
     if (game && roomId) {
-      endGame(roomId, "opponent disconnected");
+      endGame(roomId, "opponentleft");
     }
   });
 });
