@@ -311,10 +311,12 @@ function updateGame(roomId) {
   const alive = players.filter((p) => p.alive);
   if (alive.length <= 1) {
     endGame(roomId, "round finished");
+
+  socket.on("playerlefttothemenu" => {
+    io.to(roomId).emit("opponentLeft");
+  });
   }
 }
 
-socket.on("playerlefttothemenu" => {
-  io.to(roomId).emit("opponentLeft");
-});
+
 
