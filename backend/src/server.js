@@ -314,3 +314,7 @@ function updateGame(roomId) {
   }
 }
 
+socket.on("playerlefttothemenu" => {
+  io.to(roomId).emit("opponentLeft");
+});
+

@@ -158,6 +158,7 @@ quitBtn.addEventListener("click", () => {
   quitBtn.style.display = "none";
 
   statusText.innerText = "";
+  socket.emit("playerlefttothemenu");
 });
 
 // ---------- INPUT ----------
