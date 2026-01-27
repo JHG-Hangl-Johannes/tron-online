@@ -12,7 +12,7 @@ canvas#game{background:#000;border:2px solid #222;display:block}
 /* ---------- STATUS TEXT ---------- */
 .status {
   position: fixed;
-  top: 50px;
+  top: 80%;
   left: 50%;
   transform: translateX(-50%);
   text-align: center;

@@ -165,3 +165,11 @@ window.addEventListener("keydown", (e) => {
   if (!gameActive) return;
   socket.emit("input", e.key);
 });
+
+socket.on("opponentLeft", () => {
+  rematchVotes = 0;
+  rematchBtn.innerText = `Rematch ${rematchVotes}/2`;
+  rematchBtn.disabled = true;
+  rematchBtn.classList.add("disabled");
+  showStatus("Gegner hat das Spiel verlassen");
+});

@@ -249,6 +249,11 @@ function endGame(roomId, reason = "gameOver") {
 
   io.to(roomId).emit("gameOver", { reason });
 
+  if (reason === "opponent disconnected") {
+    io.to(roomId).emit("opponentLeft");
+  }
+
+
   console.log("Game ended in room:", roomId, "reason:", reason);
 }
 
