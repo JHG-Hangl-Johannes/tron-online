@@ -6,45 +6,34 @@ const app = express();
 const port = 3000;
 const HOST = "0.0.0.0";
 
-// Create HTTP server
+// ---------- HTTP + SOCKET.IO SETUP ----------
 const server = http.createServer(app);
-
-// Attach Socket.IO
 const io = new Server(server, {
   cors: {
     origin: "*",
-  }
+  },
 });
 
-// Example API route
+// ---------- SIMPLE API ROUTE ----------
 app.get("/api/hello", (req, res) => {
   res.json({ message: "Hello from backend!" });
 });
 
-// WebSocket events
-io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
-
-  socket.on("disconnect", () => {
-    console.log("A user disconnected:", socket.id);
-  });
-});
-
-// Start server
-server.listen(port, HOST, () => {
-  console.log(`Backend running at http://${HOST}:${port}`);
-});
-// const io = new Server(server, {
-//   cors: {
-//     origin: "*",
-//   },
-// });
 // ---------- GAME CONSTANTS ----------
 const COLS = 80;
 const ROWS = 60;
 const TICK_MS = 80;
 
 // ---------- GAME STATE ----------
+/**
+ * games[roomId] = {
+ *   players: [player0, player1],
+ *   grid: Set<string>,
+ *   playerBySocket: { [socketId]: 0 | 1 },
+ *   interval: NodeJS.Timer | null,
+ *   rematchVotes: number,
+ * }
+ */
 const games = {};
 let waitingSocket = null;
 
@@ -52,26 +41,29 @@ let waitingSocket = null;
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
+  // ---- MATCHMAKING: READY ----
   socket.on("ready", () => {
-  // If this player is already waiting, ignore
-   if (waitingSocket && waitingSocket.id === socket.id) {
+    // If this player is already waiting, ignore
+    if (waitingSocket && waitingSocket.id === socket.id) {
       return;
-   }
+    }
 
-   if (!waitingSocket) {
-     waitingSocket = socket;
+    // No one waiting → put this player in queue
+    if (!waitingSocket) {
+      waitingSocket = socket;
       socket.emit("waiting");
-   } else {
+    } else {
+      // Someone is waiting → create a match
       const socketA = waitingSocket;
-     const socketB = socket;
+      const socketB = socket;
 
-     // Prevent matching the same socket
+      // Prevent matching the same socket
       if (socketA.id === socketB.id) return;
 
-     const roomId = socketA.id + "#" + socketB.id;
+      const roomId = socketA.id + "#" + socketB.id;
 
       socketA.join(roomId);
-     socketB.join(roomId);
+      socketB.join(roomId);
 
       waitingSocket = null;
 
@@ -79,8 +71,7 @@ io.on("connection", (socket) => {
     }
   });
 
-
-  // Input from clients
+  // ---- INPUT FROM CLIENTS ----
   socket.on("input", (key) => {
     const { game, playerIndex } = findGameBySocket(socket.id);
     if (!game) return;
@@ -94,7 +85,7 @@ io.on("connection", (socket) => {
     if (key === "ArrowRight" || key === "d") player.pendingDir = "right";
   });
 
-  // Rematch request
+  // ---- REMATCH REQUEST ----
   socket.on("rematchRequest", () => {
     const { roomId, game } = findGameBySocket(socket.id);
     if (!game) return;
@@ -116,49 +107,62 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Disconnect
+  // ---- PLAYER EXPLICITLY LEAVES TO MENU ----
+  socket.on("playerlefttothemenu", () => {
+    const { roomId, game } = findGameBySocket(socket.id);
+    if (!game || !roomId) return;
+
+    // End game and notify opponent
+    endGame(roomId, "opponent disconnected");
+  });
+
+  // ---- PLAY AGAIN (BACK TO MATCHMAKING) ----
+  socket.on("playAgain", () => {
+    const { roomId, game } = findGameBySocket(socket.id);
+
+    // If player was in a game, stop it and clean up
+    if (game && roomId) {
+      clearInterval(game.interval);
+      delete games[roomId];
+    }
+
+    // Remove from old rooms
+    for (const room of socket.rooms) {
+      if (room !== socket.id) socket.leave(room);
+    }
+
+    // Put player back into matchmaking
+    if (!waitingSocket) {
+      waitingSocket = socket;
+      socket.emit("waiting");
+    } else {
+      const socketA = waitingSocket;
+      const socketB = socket;
+      const newRoomId = socketA.id + "#" + socketB.id;
+
+      socketA.join(newRoomId);
+      socketB.join(newRoomId);
+
+      waitingSocket = null;
+
+      startCountdown(newRoomId, socketA, socketB);
+    }
+  });
+
+  // ---- DISCONNECT (HARD RESET MODEL) ----
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
 
+    // If this player was waiting in queue, remove them
     if (waitingSocket && waitingSocket.id === socket.id) {
       waitingSocket = null;
       return;
     }
 
+    // If this player was in a game, end it and notify opponent
     const { roomId, game } = findGameBySocket(socket.id);
     if (game && roomId) {
       endGame(roomId, "opponent disconnected");
-    }
-  });
-  socket.on("playAgain", () => {
-  const { roomId, game } = findGameBySocket(socket.id);
-
-  // If player was in a game, stop it
-  if (game && roomId) {
-    clearInterval(game.interval);
-    delete games[roomId];
-  }
-
-  // Remove from old room
-  for (const room of socket.rooms) {
-    if (room !== socket.id) socket.leave(room);
-  }
-
-  // Put player back into matchmaking
-  if (!waitingSocket) {
-    waitingSocket = socket;
-    socket.emit("waiting");
-  } else {
-    const socketA = waitingSocket;
-    const socketB = socket;
-    const newRoomId = socketA.id + "#" + socketB.id;
-
-    socketA.join(newRoomId);
-    socketB.join(newRoomId);
-
-    waitingSocket = null;
-
-    startCountdown(newRoomId, socketA, socketB);
     }
   });
 });
@@ -253,6 +257,8 @@ function endGame(roomId, reason = "gameOver") {
     io.to(roomId).emit("opponentLeft");
   }
 
+  // Automatic cleanup of finished game
+  delete games[roomId];
 
   console.log("Game ended in room:", roomId, "reason:", reason);
 }
@@ -311,12 +317,10 @@ function updateGame(roomId) {
   const alive = players.filter((p) => p.alive);
   if (alive.length <= 1) {
     endGame(roomId, "round finished");
-
-  socket.on("playerlefttothemenu" => {
-    io.to(roomId).emit("opponentLeft");
-  });
   }
 }
 
-
-
+// ---------- START SERVER ----------
+server.listen(port, HOST, () => {
+  console.log(`Backend running at http://${HOST}:${port}`);
+});
