@@ -94,6 +94,7 @@ socket.on("startGame", () => {
   gameActive = true;
 
   rematchBtn.style.display = "none";
+  rematchBtn.classList.remove("disabled");
   playAgainBtn.style.display = "none";
   quitBtn.style.display = "none";
 
