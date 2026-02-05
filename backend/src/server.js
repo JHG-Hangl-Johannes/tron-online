@@ -50,11 +50,9 @@ let waitingSocket = null;
 
 // ---------- SOCKET HANDLERS ----------
 io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
+  console.log("User connected:", socket.id);
 
-    socket.on("playerlefttothemenu", () => {
-    io.to(roomId).emit("opponentLeft");
-  });
+  // Matchmaking handler
   
   socket.on("ready", () => {
   // If this player is already waiting, ignore
