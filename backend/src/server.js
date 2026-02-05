@@ -54,6 +54,14 @@ io.on("connection", (socket) => {
 
   // Matchmaking handler
   
+
+  socket.on("playerlefttothemenu", () => {
+    const { roomId } = findRoomBySocket(socket.id);
+    if (roomId) {
+      io.to(roomId).emit("opponentLeft");
+    }
+  });
+
   socket.on("ready", () => {
   // If this player is already waiting, ignore
    if (waitingSocket && waitingSocket.id === socket.id) {
