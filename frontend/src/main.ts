@@ -127,15 +127,17 @@ rematchBtn.addEventListener("click", () => {
 
   startRematchAnimation();
   socket.emit("rematchRequest");
+  if (rematchVotes === 2) {
+  rematchBtn.style.display = "none";
+  playAgainBtn.style.display = "none";
+  quitBtn.style.display = "none";
+  }
 });
 
 socket.on("rematchStart", () => {
   stopSearchingAnimation();
   showStatus("Rematch startet!");
   gameActive = false;
-  rematchBtn.style.display = "none";
-  playAgainBtn.style.display = "none";
-  quitBtn.style.display = "none";
 });
 
 socket.on("opponentRematchRequest", () => {
