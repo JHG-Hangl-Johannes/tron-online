@@ -56,10 +56,7 @@ io.on("connection", (socket) => {
   
 
   socket.on("playerlefttothemenu", () => {
-    const { roomId } = findRoomBySocket(socket.id);
-    if (roomId) {
-      io.to(roomId).emit("opponentLeft");
-    }
+    leaveRoom(socket);
   });
 
   socket.on("ready", () => {
@@ -143,15 +140,9 @@ io.on("connection", (socket) => {
   socket.on("playAgain", () => {
   const { roomId, game } = findGameBySocket(socket.id);
 
-  // If player was in a game, stop it
+  // If player was in a game, stop it and leave room
   if (game && roomId) {
-    clearInterval(game.interval);
-    delete games[roomId];
-  }
-
-  // Remove from old room
-  for (const room of socket.rooms) {
-    if (room !== socket.id) socket.leave(room);
+    leaveRoom(socket);
   }
 
   // Put player back into matchmaking
@@ -248,6 +239,31 @@ function findGameBySocket(socketId) {
     }
   }
   return { roomId: null, game: null, playerIndex: -1 };
+}
+
+function leaveRoom(socket) {
+  const { roomId, game } = findGameBySocket(socket.id);
+  
+  if (!roomId || !game) return;
+
+  // Notify opponent that player left
+  socket.to(roomId).emit("opponentLeft");
+
+  // Stop the game if it's running
+  if (game.interval) {
+    clearInterval(game.interval);
+    game.interval = null;
+  }
+
+  // Remove player from room
+  socket.leave(roomId);
+
+  // Check if room is empty and destroy it
+  const roomMembers = io.sockets.adapter.rooms.get(roomId);
+  if (!roomMembers || roomMembers.size === 0) {
+    delete games[roomId];
+    console.log("Room destroyed:", roomId);
+  }
 }
 
 function endGame(roomId, reason = "gameOver") {

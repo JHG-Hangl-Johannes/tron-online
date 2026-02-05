@@ -1,5 +1,6 @@
 import { io } from "socket.io-client";
 import GameRenderer from "./renderer";
+import { start } from "repl";
 
 // ---------- DOM ELEMENTS ----------
 const canvas = document.getElementById("game") as HTMLCanvasElement;
@@ -146,6 +147,8 @@ playAgainBtn.addEventListener("click", () => {
 
   showStatus("Suche neuen Gegner…");
   socket.emit("playAgain");
+  socket.emit("playerlefttothemenu");
+  startSearchingAnimation();
 });
 
 // ---------- QUIT TO MENU ----------
