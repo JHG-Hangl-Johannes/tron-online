@@ -52,13 +52,10 @@ let waitingSocket = null;
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
-  socket.on("playerlefttothemenu", () => {
-      const { roomId } = findRoomBySocket(socket.id);
-      if (roomId) {
-        io.to(roomId).emit("opponentLeft");
-      }
-    });
-
+    socket.on("playerlefttothemenu", () => {
+    io.to(roomId).emit("opponentLeft");
+  });
+  
   socket.on("ready", () => {
   // If this player is already waiting, ignore
    if (waitingSocket && waitingSocket.id === socket.id) {
