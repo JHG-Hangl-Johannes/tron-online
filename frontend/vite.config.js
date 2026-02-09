@@ -9,7 +9,7 @@ export default defineConfig({
         ws: true
       }
     },
-     host: '0.0.0.0',
+     host: 'localhost',
     port: 9734
   }
 });

@@ -4,7 +4,7 @@ const { Server } = require("socket.io");
 
 const app = express();
 const port = 3000;
-const HOST = "0.0.0.0";
+const HOST = "localhost";
 
 // Create HTTP server
 const server = http.createServer(app);
